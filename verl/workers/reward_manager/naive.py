@@ -73,13 +73,16 @@ class NaiveRewardManager:
             prompt_str = self.tokenizer.decode(valid_prompt_ids, skip_special_tokens=True)
             response_str = self.tokenizer.decode(valid_response_ids, skip_special_tokens=True)
 
+            combined_ids = torch.cat((valid_prompt_ids, valid_response_ids))
+            combined_str = self.tokenizer.decode(combined_ids, skip_special_tokens=False)
+
             ground_truth = data_item.non_tensor_batch["reward_model"]["ground_truth"]
             data_source = data_item.non_tensor_batch[self.reward_fn_key]
             extra_info = data_item.non_tensor_batch.get("extra_info", None)
 
             score = self.compute_score(
                 data_source=data_source,
-                solution_str=response_str,
+                solution_str=combined_str,
                 ground_truth=ground_truth,
                 extra_info=extra_info,
             )
@@ -97,7 +100,7 @@ class NaiveRewardManager:
             if data_source not in already_print_data_sources:
                 already_print_data_sources[data_source] = 0
 
-            if already_print_data_sources[data_source] < self.num_examine:
+            if already_print_data_sources[data_source] < 1:  # self.num_examine:
                 already_print_data_sources[data_source] += 1
                 print("[prompt]", prompt_str)
                 print("[response]", response_str)
